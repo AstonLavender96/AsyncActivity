@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">AsyncActivity</string>
-    <string name="btndownload">Download</string>
+    <string name="download">Download</string>
 </resources>
