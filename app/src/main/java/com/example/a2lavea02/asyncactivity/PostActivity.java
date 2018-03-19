@@ -2,6 +2,7 @@ package com.example.a2lavea02.asyncactivity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,25 +22,35 @@ import android.app.AlertDialog;
 
 public class PostActivity extends AppCompatActivity implements View.OnClickListener {
     class MyTask extends AsyncTask<String, Void, String> {
-        public String doInBackground(String... artist) {
+        public String doInBackground(String... params) {
+
             HttpURLConnection conn = null;
             try {
                 URL url = new URL("http://www.free-map.org.uk/course/mad/ws/addhit.php" );
                 conn = (HttpURLConnection) url.openConnection();
 
-                String postData = "songname=Goodbye&artist=Jlo&year=1990";
+                String songname = params[0];
+                String artist = params[1];
+                String year = params[2];
+                String postData = "song=" + songname +
+                        "&artist=" + artist +
+                        "&year=" + year;
+
                 conn.setDoOutput(true);
                 conn.setFixedLengthStreamingMode(postData.length());
 
                 OutputStream out = null;
                 out = conn.getOutputStream();
+                Log.d("network", "postData="+ postData);
                 out.write(postData.getBytes());
                 if (conn.getResponseCode() == 200) {
                     InputStream in = conn.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
                     String all = "", line;
-                    while((line = br.readLine()) != null);
-                    all += line;
+                    while((line = br.readLine()) != null)
+                    {
+                        all += line;
+                    }
                     return all;
                 } else {
                     return "HTTP ERROR: " + conn.getResponseCode();
@@ -54,8 +65,6 @@ public class PostActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         public void onPostExecute(String result) {
-            TextView artistlist = (TextView) findViewById(R.id.artistlist);
-            artistlist.setText(result);
             new AlertDialog.Builder(PostActivity.this).setMessage("server sent back: " + result).setPositiveButton("OK", null).show();
         }
     }
@@ -64,16 +73,24 @@ public class PostActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Button Download = (Button) findViewById(R.id.btn1);
+        setContentView(R.layout.post_activity);
+        Button Download = (Button) findViewById(R.id.addhitbtn);
         Download.setOnClickListener(this);
     }
 
     public void onClick(View v) {
         String artist = null;
-        EditText et = (EditText) findViewById(R.id.et1);
+        String songname = null;
+        String year = null;
+
+        EditText et = (EditText) findViewById(R.id.et2);
+        EditText et2 = (EditText) findViewById(R.id.et3);
+        EditText et3 = (EditText) findViewById(R.id.et4);
         artist = et.getText().toString();
+        songname = et2.getText().toString();
+        year = et3.getText().toString();
         PostActivity.MyTask t = new PostActivity.MyTask();
-        t.execute(artist);
+        t.execute(artist, songname, year);
+
     }
 }
