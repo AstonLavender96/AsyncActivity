@@ -1,6 +1,7 @@
 package com.example.a2lavea02.asyncactivity;
 
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -11,6 +12,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.os.AsyncTask;
 import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             HttpURLConnection conn = null;
             try
             {
-                URL url = new URL("http://www.free-map.org.uk/course/mad/ws/hits.php?artist=" + URLEncoder.encode(artist[0], "UTF-8"));
+                URL url = new URL("http://www.free-map.org.uk/course/mad/ws/hits.php?format=json&artist=" + URLEncoder.encode(artist[0],"UTF-8"));
                 conn = (HttpURLConnection) url.openConnection();
                 InputStream in = conn.getInputStream();
                 EditText et = (EditText)findViewById(R.id.et1);
@@ -63,8 +68,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         public void onPostExecute(String result)
         {
-            TextView artistlist = (TextView)findViewById(R.id.artistlist);
-            artistlist.setText(result);
+            try
+            {
+                JSONArray jsonArr = new JSONArray (result);
+                String curSong, curArtist, curYear, curMonth, curChart, curID, curQuantity;
+
+                TextView tv = (TextView)findViewById(R.id.artistlist);
+                String text="";
+
+                for(int i=0; i<jsonArr.length(); i++)
+                {
+                    JSONObject curObj = jsonArr.getJSONObject(i);
+                    String song = curObj.getString("song"),
+                            artist = curObj.getString("artist"),
+                            year = curObj.getString("year"),
+                            month = curObj.getString("month"),
+                            chart = curObj.getString("chart"),
+                            id = curObj.getString("ID"),
+                            quantity = curObj.getString("quantity");
+                    text +=" Song Name: "+ song + " Course: " + artist + " Year: " + year + " Month: " + month +  " Chart: " + chart + " ID: " + id + " Quantity: " + quantity + "\n";
+                }
+                tv.setText(text);
+            }
+            catch (JSONException e)
+            {
+                new AlertDialog.Builder(MainActivity.this).setMessage(e.toString()).setPositiveButton("OK", null).show();
+            }
+
         }
     }
     public boolean onCreateOptionsMenu(Menu menu)
